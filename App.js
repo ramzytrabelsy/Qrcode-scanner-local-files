@@ -4,6 +4,7 @@ import React, { Component } from 'react';
 import { Text, View, Linking, TouchableHighlight, PermissionsAndroid, Platform, StyleSheet, Image} from 'react-native';
 // import all basic components
 import { CameraKitCameraScreen, } from 'react-native-camera-kit';
+import Video from 'react-native-video';
 //import CameraKitCameraScreen we are going to use.
 export default class App extends Component {
   constructor() {
@@ -17,10 +18,16 @@ export default class App extends Component {
         require('./assets/photo2.jpg'),
         require('./assets/photo3.jpg'),
         
-    ]
+    ],
+    video:[
+      require('./assets/video1.mp4'),
+      require('./assets/video2.mp4'),
+      require('./assets/video3.mp4'),
+      
+  ]
     };
   }
-  
+
   onBarcodeScan(qrvalue) {
     //called after te successful scanning of QRCode/Barcode
     this.setState({ qrvalue: qrvalue });
@@ -73,6 +80,17 @@ export default class App extends Component {
         source={this.state.image[qrvalue-1]}
       />
       ) : null}
+       {this.state.qrvalue != "" && this.state.qrvalue.includes("video") ? (
+        <Video source={this.state.video[qrvalue.substring(5)-1]}   // Can be a URL or a local file.
+       ref={(ref) => {
+         this.player = ref
+       }}                                      // Store reference
+       onBuffer={this.onBuffer}                // Callback when remote video is buffering
+       onError={this.videoError}               // Callback when video cannot be loaded
+       style={styles.backgroundVideo} />
+      
+      ) : null} 
+      
             <Text style={styles.simpleText}>{this.state.qrvalue ? 'Scanned QR Code: '+this.state.qrvalue : ''}</Text>
             
             <TouchableHighlight
@@ -139,4 +157,12 @@ const styles = StyleSheet.create({
     height: 200,
     resizeMode: 'stretch',
   },
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    marginBottom: 20
+  }
 });
