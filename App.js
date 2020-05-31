@@ -1,36 +1,142 @@
-import * as React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
-
-const instructions = Platform.select({
-  ios: `Press Cmd+R to reload,\nCmd+D or shake for dev menu`,
-  android: `Double tap R on your keyboard to reload,\nShake or press menu button for dev menu`,
-});
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.welcome}>Welcome to React Native!</Text>
-      <Text style={styles.instructions}>To get started, edit App.js</Text>
-      <Text style={styles.instructions}>{instructions}</Text>
-    </View>
-  );
+//This is an example code to Scan QR code//
+import React, { Component } from 'react';
+//import react in our code.
+import { Text, View, Linking, TouchableHighlight, PermissionsAndroid, Platform, StyleSheet, Image} from 'react-native';
+// import all basic components
+import { CameraKitCameraScreen, } from 'react-native-camera-kit';
+//import CameraKitCameraScreen we are going to use.
+export default class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      //variable to hold the qr value
+      qrvalue: '',
+      opneScanner: false,
+      image:[
+        require('./assets/photo1.jpg'),
+        require('./assets/photo2.jpg'),
+        require('./assets/photo3.jpg'),
+        
+    ]
+    };
+  }
+  
+  onBarcodeScan(qrvalue) {
+    //called after te successful scanning of QRCode/Barcode
+    this.setState({ qrvalue: qrvalue });
+    console.log(qrvalue)
+    this.setState({ opneScanner: false });
+  }
+  onOpneScanner() {
+    var that =this;
+    //To Start Scanning
+    if(Platform.OS === 'android'){
+      async function requestCameraPermission() {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.CAMERA,{
+              'title': 'CameraExample App Camera Permission',
+              'message': 'CameraExample App needs access to your camera '
+            }
+          )
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            //If CAMERA Permission is granted
+            that.setState({ qrvalue: '' });
+            that.setState({ opneScanner: true });
+          } else {
+            alert("CAMERA permission denied");
+          }
+        } catch (err) {
+          alert("Camera permission err",err);
+          console.warn(err);
+        }
+      }
+      //Calling the camera permission function
+      requestCameraPermission();
+    }else{
+      that.setState({ qrvalue: '' });
+      that.setState({ opneScanner: true });
+    }    
+  }
+  render() {
+    const { qrvalue } = this.state;
+    let displayModal;
+    //If qrvalue is set then return this view
+    if (!this.state.opneScanner) {
+      return (
+        <View style={styles.container}>
+            <Text style={styles.heading}>React Native QR Code </Text>
+            
+      {this.state.qrvalue != "" ? (
+        <Image
+        style={styles.stretch}
+        source={this.state.image[qrvalue-1]}
+      />
+      ) : null}
+            <Text style={styles.simpleText}>{this.state.qrvalue ? 'Scanned QR Code: '+this.state.qrvalue : ''}</Text>
+            
+            <TouchableHighlight
+              onPress={() => this.onOpneScanner()}
+              style={styles.button}>
+                <Text style={{ color: '#FFFFFF', fontSize: 12 }}>
+                Open QR Scanner
+                </Text>
+            </TouchableHighlight>
+        </View>
+      );
+    }
+    return (
+      <View style={{ flex: 1 }}>
+        <CameraKitCameraScreen
+          showFrame={false}
+          //Show/hide scan frame
+          scanBarcode={true}
+          //Can restrict for the QR Code only
+          laserColor={'blue'}
+          //Color can be of your choice
+          frameColor={'yellow'}
+          //If frame is visible then frame color
+          colorForScannerFrame={'black'}
+          //Scanner Frame color
+          onReadCode={event =>
+            this.onBarcodeScan(event.nativeEvent.codeStringValue)
+          }
+        />
+      </View>
+    );
+  }
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    justifyContent: 'center',
+    backgroundColor:'white'
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#2c3539',
+    padding: 10,
+    width:300,
+    marginTop:16
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  heading: { 
+    color: 'black', 
+    fontSize: 24, 
+    alignSelf: 'center', 
+    padding: 10, 
+    marginTop: 30 
+  },
+  simpleText: { 
+    color: 'black', 
+    fontSize: 20, 
+    alignSelf: 'center', 
+    padding: 10, 
+    marginTop: 16
+  },
+  stretch: {
+    width: "80%",
+    height: 200,
+    resizeMode: 'stretch',
   },
 });
